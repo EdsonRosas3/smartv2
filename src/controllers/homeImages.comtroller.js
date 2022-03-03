@@ -28,4 +28,16 @@ export const sendFileSm = (req, res) => {
       res.sendFile(dir);
     } catch (error) {}
 };
+
+export const sendImgeLogin = (req, res) =>{
+  try {
+    const dir = path.join(
+      __dirname,
+      `../storage/home/login/login.jpg`
+    )
+    res.sendFile(dir);
+  } catch (error) {
+    
+  }
+}
   
