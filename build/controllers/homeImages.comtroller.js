@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.sendFileSm = exports.sendFileMd = exports.sendFileLg = void 0;
+exports.sendImgeLogin = exports.sendFileSm = exports.sendFileMd = exports.sendFileLg = void 0;
 
 var _path = _interopRequireDefault(require("path"));
 
@@ -38,3 +38,13 @@ var sendFileSm = (req, res) => {
 };
 
 exports.sendFileSm = sendFileSm;
+
+var sendImgeLogin = (req, res) => {
+  try {
+    var dir = _path.default.join(__dirname, "../storage/home/login/login.jpg");
+
+    res.sendFile(dir);
+  } catch (error) {}
+};
+
+exports.sendImgeLogin = sendImgeLogin;

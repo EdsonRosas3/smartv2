@@ -13,6 +13,8 @@ var _imgConfiguration = require("../imgConfiguration");
 
 var _Price = _interopRequireDefault(require("../models/Price"));
 
+var _Category = _interopRequireDefault(require("../models/Category"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
@@ -73,6 +75,33 @@ var getProductByCode = /*#__PURE__*/function () {
       });
       var price = yield _Price.default.findByPk(product.price_id);
       product.price_id = price;
+      var category = yield _Category.default.findByPk(product.category_id);
+      var navigation = {
+        urlpath: ""
+      };
+
+      switch (category.name) {
+        case "Maquinaria":
+          navigation.urlpath = "/all/maquinarias";
+          break;
+
+        case "Invernaderos":
+          navigation.urlpath = "/all/invernaderos";
+          break;
+
+        case "Riegos":
+          navigation.urlpath = "/all/riegos";
+          break;
+
+        case "Laboratorios":
+          navigation.urlpath = "/all/laboratorios";
+          break;
+
+        default:
+          break;
+      }
+
+      product.category_id = navigation;
       return res.status(200).json(product);
     } catch (error) {
       return res.status(500).json(error);
@@ -176,7 +205,7 @@ var deleteProductById = /*#__PURE__*/function () {
         where: {
           product_id: req.params.productId
         },
-        attributes: ['public_name']
+        attributes: ["public_name"]
       });
       var product = yield _Product.default.findByPk(req.params.productId);
       var deleteProduct = yield _Product.default.destroy({
@@ -303,7 +332,6 @@ var getProductByCategoryIdNoA = /*#__PURE__*/function () {
         i++;
       }
 
-      ;
       return res.send({
         content: productsByCategory.rows,
         totalPages: Math.ceil(productsByCategory.count / Number.parseInt(size)),
@@ -426,7 +454,7 @@ function generateCode(elements) {
 }
 
 function generateRandom(num) {
-  var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".split(''),
+  var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".split(""),
       result = "";
   if (num > characters.length) return false;
 
