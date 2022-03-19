@@ -28,7 +28,7 @@ Product.init({
     }
   },
   description: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(8000),
     allowNull: true
   },
   available: {
