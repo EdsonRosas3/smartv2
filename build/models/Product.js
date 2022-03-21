@@ -41,7 +41,7 @@ Product.init({
     }
   },
   description: {
-    type: _sequelize.DataTypes.STRING,
+    type: _sequelize.DataTypes.STRING(8000),
     allowNull: true
   },
   available: {
