@@ -11,8 +11,6 @@ export default {
   ,
   DB_PASSWORD: process.env.DB_PASSWORD //|| ""
   ,
-  DB_NAME: process.env.DB_NAME //|| "testdb"
-  ,
   DB_DIALECT: process.env.DB_DIALECT //|| "mysql"
   ,
   SECRET: process.env.SECRET //|| "devstore"

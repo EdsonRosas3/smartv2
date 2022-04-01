@@ -1,8 +1,8 @@
 import Service from "../models/Service";
 import ImageService from "../models/ImageService";
-import {deleteImage} from "../imgConfiguration";
+import { deleteImage } from "../imgConfiguration";
 import Price from "../models/Price";
-
+import TypeService from "../models/TypeService";
 
 export const createService = async (req, res) => {
   try {
@@ -12,8 +12,10 @@ export const createService = async (req, res) => {
     const services = await Service.findAndCountAll();
     req.body.code = generateCode(services);
     const service = await Service.create(req.body);
-    
-    return res.status(201).json({ message: "Producto ha sido actualizado",service});
+
+    return res
+      .status(201)
+      .json({ message: "Producto ha sido actualizado", service });
   } catch (error) {
     return res.status(500).json(error);
   }
@@ -34,11 +36,33 @@ export const getServiceById = async (req, res) => {
 //buscar servicio por code
 export const getServiceByCode = async (req, res) => {
   try {
-    const service = await Service.findOne({ 
-      where: { code: req.params.code } 
+    const service = await Service.findOne({
+      where: { code: req.params.code },
     });
     const price = await Price.findByPk(service.price_id);
     service.price_id = price;
+    var typesServices = await TypeService.findByPk(service.typeService_id);
+    const navigation = { urlpath: "" };
+    switch (typesServices.name) {
+      case "Diseño y construcción de invernaderos":
+        navigation.urlpath = "/service/construnccion";
+        break;
+      case "Diseño e instalación de sistemas de riego":
+        navigation.urlpath = "/service/instalacion";
+        break;
+      case "Cursos de capacitación":
+        navigation.urlpath = "/service/cursos";
+        break;
+      case "Asesoría técnica en la producción":
+        navigation.urlpath = "/service/asesorias";
+        break;
+      case "Laboratorio agrícola":
+        navigation.urlpath = "/service/laboratorio";
+        break;
+      default:
+        break;
+    }
+    service.typeService_id = navigation;
 
     return res.status(200).json(service);
   } catch (error) {
@@ -59,7 +83,11 @@ export const getServices = async (req, res) => {
       page = pageAsNumber;
     }
     let size = 30;
-    if (!Number.isNaN(sizeAsNumber) &&!(sizeAsNumber > 30) &&!(sizeAsNumber < 1)) {
+    if (
+      !Number.isNaN(sizeAsNumber) &&
+      !(sizeAsNumber > 30) &&
+      !(sizeAsNumber < 1)
+    ) {
       size = sizeAsNumber;
     }
 
@@ -70,7 +98,7 @@ export const getServices = async (req, res) => {
     });
 
     var i = 0;
-    while(i < allServices.count){
+    while (i < allServices.count) {
       const service = allServices.rows[i];
       const price = await Price.findByPk(service.price_id);
       service.price_id = price;
@@ -79,7 +107,7 @@ export const getServices = async (req, res) => {
     return res.send({
       content: allServices.rows,
       totalPages: Math.ceil(allServices.count / Number.parseInt(size)),
-      totalServices: allServices.count
+      totalServices: allServices.count,
     });
   } catch (error) {
     return res.status(500).json(error);
@@ -107,8 +135,9 @@ export const updateServiceById = async (req, res) => {
 
 export const deleteServiceById = async (req, res) => {
   try {
-    const publicnames = await ImageService.findAll({ 
-      where:{service_id:req.params.serviceId},attributes:['public_name']
+    const publicnames = await ImageService.findAll({
+      where: { service_id: req.params.serviceId },
+      attributes: ["public_name"],
     });
 
     const service = await Service.findByPk(req.params.serviceId);
@@ -119,13 +148,14 @@ export const deleteServiceById = async (req, res) => {
       where: { id: service.price_id },
     });
 
-    publicnames.forEach(image => {
+    publicnames.forEach((image) => {
       deleteImage(`images/${image.public_name}`);
       deleteImage(`images/optimizeimg/300/${image.public_name}`);
       deleteImage(`images/optimizeimg/700/${image.public_name}`);
-      
     });
-    return res.status(200).json({ message: "Servicio ha sido eliminado", deleteService });
+    return res
+      .status(200)
+      .json({ message: "Servicio ha sido eliminado", deleteService });
   } catch (error) {
     return res.status(500).json(error);
   }
@@ -133,25 +163,28 @@ export const deleteServiceById = async (req, res) => {
 
 //servicios disponibles por tipo de servicio
 export const getServiceByTypeIdA = async (req, res) => {
-  try{
-
+  try {
     const pageAsNumber = Number.parseInt(req.query.page);
     const sizeAsNumber = Number.parseInt(req.query.size);
     const order_by = req.query.order_by;
     const order_direction = req.query.order_direction;
-    
+
     let page = 0;
-    if(!Number.isNaN(pageAsNumber) && pageAsNumber > 0){
+    if (!Number.isNaN(pageAsNumber) && pageAsNumber > 0) {
       page = pageAsNumber;
     }
     let size = 30;
-    if (!Number.isNaN(sizeAsNumber) &&!(sizeAsNumber > 30) &&!(sizeAsNumber < 1)) {
+    if (
+      !Number.isNaN(sizeAsNumber) &&
+      !(sizeAsNumber > 30) &&
+      !(sizeAsNumber < 1)
+    ) {
       size = sizeAsNumber;
     }
     const serviceByType = await Service.findAndCountAll({
       where: {
         typeService_id: req.params.typeServiceId,
-        available: true
+        available: true,
       },
       limit: size,
       offset: page * size,
@@ -159,7 +192,7 @@ export const getServiceByTypeIdA = async (req, res) => {
     });
 
     var i = 0;
-    while(i < serviceByType.rows.length){
+    while (i < serviceByType.rows.length) {
       const service = serviceByType.rows[i];
       const price = await Price.findByPk(service.price_id);
       service.price_id = price;
@@ -169,7 +202,7 @@ export const getServiceByTypeIdA = async (req, res) => {
     return res.send({
       content: serviceByType.rows,
       totalPages: Math.ceil(serviceByType.count / Number.parseInt(size)),
-      totalServices: serviceByType.count
+      totalServices: serviceByType.count,
     });
   } catch (error) {
     return res.status(500).json(error);
@@ -178,25 +211,28 @@ export const getServiceByTypeIdA = async (req, res) => {
 
 //servicios no disponibles por tipo de servicio
 export const getServiceByTypeIdNoA = async (req, res) => {
-  try{
-
+  try {
     const pageAsNumber = Number.parseInt(req.query.page);
     const sizeAsNumber = Number.parseInt(req.query.size);
     const order_by = req.query.order_by;
     const order_direction = req.query.order_direction;
-    
+
     let page = 0;
-    if(!Number.isNaN(pageAsNumber) && pageAsNumber > 0){
+    if (!Number.isNaN(pageAsNumber) && pageAsNumber > 0) {
       page = pageAsNumber;
     }
     let size = 30;
-    if (!Number.isNaN(sizeAsNumber) &&!(sizeAsNumber > 30) &&!(sizeAsNumber < 1)) {
+    if (
+      !Number.isNaN(sizeAsNumber) &&
+      !(sizeAsNumber > 30) &&
+      !(sizeAsNumber < 1)
+    ) {
       size = sizeAsNumber;
     }
     const serviceByType = await Service.findAndCountAll({
       where: {
         typeService_id: req.params.typeServiceId,
-        available: false
+        available: false,
       },
       limit: size,
       offset: page * size,
@@ -204,17 +240,17 @@ export const getServiceByTypeIdNoA = async (req, res) => {
     });
 
     var i = 0;
-    while(i < serviceByType.rows.length){
+    while (i < serviceByType.rows.length) {
       const service = serviceByType.rows[i];
       const price = await Price.findByPk(service.price_id);
       service.price_id = price;
       i++;
-    };
+    }
 
     return res.send({
       content: serviceByType.rows,
       totalPages: Math.ceil(serviceByType.count / Number.parseInt(size)),
-      totalServices: serviceByType.count
+      totalServices: serviceByType.count,
     });
   } catch (error) {
     return res.status(500).json(error);
@@ -223,32 +259,35 @@ export const getServiceByTypeIdNoA = async (req, res) => {
 
 //todos los servicios por tipo de servicio
 export const getServiceByTypeId = async (req, res) => {
-  try{
-
+  try {
     const pageAsNumber = Number.parseInt(req.query.page);
     const sizeAsNumber = Number.parseInt(req.query.size);
     const order_by = req.query.order_by;
     const order_direction = req.query.order_direction;
-    
+
     let page = 0;
     if (!Number.isNaN(pageAsNumber) && pageAsNumber > 0) {
       page = pageAsNumber;
     }
     let size = 30;
-    if (!Number.isNaN(sizeAsNumber) &&!(sizeAsNumber > 30) &&!(sizeAsNumber < 1)) {
+    if (
+      !Number.isNaN(sizeAsNumber) &&
+      !(sizeAsNumber > 30) &&
+      !(sizeAsNumber < 1)
+    ) {
       size = sizeAsNumber;
     }
     const serviceByType = await Service.findAndCountAll({
-        where: {
-          typeService_id: req.params.typeServiceId
-        },
-        limit: size,
-        offset: page * size,
-        order: [[order_by, order_direction]],
+      where: {
+        typeService_id: req.params.typeServiceId,
+      },
+      limit: size,
+      offset: page * size,
+      order: [[order_by, order_direction]],
     });
 
     var i = 0;
-    while(i < serviceByType.rows.length){
+    while (i < serviceByType.rows.length) {
       const service = serviceByType.rows[i];
       const price = await Price.findByPk(service.price_id);
       service.price_id = price;
@@ -258,40 +297,41 @@ export const getServiceByTypeId = async (req, res) => {
     return res.send({
       content: serviceByType.rows,
       totalPages: Math.ceil(serviceByType.count / Number.parseInt(size)),
-      totalServices: serviceByType.count
+      totalServices: serviceByType.count,
     });
   } catch (error) {
     return res.status(500).json(error);
   }
 };
 
-export const updateDefaultImage = async (req, res)=>{
+export const updateDefaultImage = async (req, res) => {
   try {
     const updateService = await Service.update(req.body, {
       where: { id: req.params.serviceId },
     });
-    return res.status(201).json({ message: "La imagen principal se actualizo", updateService });
+    return res
+      .status(201)
+      .json({ message: "La imagen principal se actualizo", updateService });
   } catch (error) {
     return res.status(500).json(error);
   }
-}
+};
 
-function generateCode(elements){
-  
+function generateCode(elements) {
   const length = elements.count;
   let number = elements.count;
 
-  if( length < 9){
-    number = "000" + (length+1);
+  if (length < 9) {
+    number = "000" + (length + 1);
   }
-  if( length > 9 && length < 99){
-    number = "00" + (length+1);
+  if (length > 9 && length < 99) {
+    number = "00" + (length + 1);
   }
-  if( length > 99 && length < 999){
-    number = "0" + (length+1);
+  if (length > 99 && length < 999) {
+    number = "0" + (length + 1);
   }
-  if( length > 9999){
-    const r = Math.random()*(10000-1) + 1;
+  if (length > 9999) {
+    const r = Math.random() * (10000 - 1) + 1;
     number = Math.floor(r);
   }
   const codeRandom = generateRandom(4) + number;
@@ -299,12 +339,16 @@ function generateCode(elements){
 }
 
 function generateRandom(num) {
-  
-  let characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".split(''),
+  let characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".split(
+      ""
+    ),
     result = "";
   if (num > characters.length) return false;
   for (let i = 0; i < num; i++) {
-    result += characters.splice(Math.floor(Math.random() * characters.length), 1)[0];
+    result += characters.splice(
+      Math.floor(Math.random() * characters.length),
+      1
+    )[0];
   }
   return result;
 }
